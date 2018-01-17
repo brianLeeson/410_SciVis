@@ -1,4 +1,4 @@
-# Install script for directory: /home/brian/workspace/410/project2
+# Install script for directory: /home/brian/workspace/410_SciVis/project2
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/brian/workspace/410/project2/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/brian/workspace/410_SciVis/project2/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

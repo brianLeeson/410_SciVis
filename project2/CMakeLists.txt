@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 PROJECT(proj1)
-SET(VTK_DIR ~/Builds/VTK-build)
+SET(VTK_DIR ~/Builds/VTK-build/)
 
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})

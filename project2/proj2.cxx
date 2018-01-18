@@ -241,11 +241,22 @@ void
 BoundingBoxForCell(const float *X, const float *Y, const int *dims,
                    int cellId, float *bbox)
 {
+
     bbox[0] = -100;
-    bbox[1] = +100;
+    bbox[1] = 100;
     bbox[2] = -100;
-    bbox[3] = +100;
-    // IMPLEMENT ME!
+    bbox[3] = 100; 
+
+	int idx[3];
+	GetLogicalCellIndex(idx, cellId, dims);
+
+	if(cellId < ((dims[0]-1) * (dims[1]-1))){
+		bbox[0] = X[idx[0]];
+		bbox[1] = X[idx[0] + 1];
+		bbox[2] = Y[idx[1]];
+		bbox[3] = Y[idx[1] + 1]; 
+	}
+
 }
 
 // ****************************************************************************
@@ -270,6 +281,7 @@ int
 CountNumberOfStraddlingCells(const float *X, const float *Y, const int *dims,
                              const float *F)
 {
+
     return 0;
     // IMPLEMENT ME!
 }
@@ -327,13 +339,10 @@ int main()
         cerr << "Evaluated field at (" << pt[i][0] <<"," << pt[i][1] << ") as "
              << f << endl;
     }
+
+	cerr << "size of x: " << dims[0] << endl;
+	cerr << "last val in x: " << X[dims[0]-1] << endl;
     
-   
-    cerr << "Infinite loop here, else Windows people may have the terminal "
-         << "disappear before they see the output."
-         << " Remove these lines if they annoy you." << endl;
-    cerr << "(press Ctrl-C to exit program)" << endl;
-    while (1) ; 
 }
 
 

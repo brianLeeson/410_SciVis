@@ -212,6 +212,28 @@ float
 EvaluateFieldAtLocation(const float *pt, const int *dims, 
                         const float *X, const float *Y, const float *F)
 {
+	int x_index, y_index;
+	float x_vals[2], y_val[2];
+
+//	find which cell pt is inside of
+
+//	find lower left logical index of cell
+	for(x_index = 0; x_index < (dims[0]-1); x_index++){
+		if ((X[x_index] <= pt[0]) && (pt[0] <= X[x_index + 1])){
+
+			break;
+		}
+	}
+	for(y_index = 0; y_index < (dims[1]-1); y_index++){
+		if ((Y[y_index] <= pt[1]) && (pt[1] <= Y[y_index + 1])){
+			
+			break;
+		}
+	}
+
+//	find value of pt inside the cell
+
+
     return 0; // IMPLEMENT ME!!
 }
 

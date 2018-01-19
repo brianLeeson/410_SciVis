@@ -270,11 +270,13 @@ BoundingBoxForCell(const float *X, const float *Y, const int *dims,
 //     dims: an array of size two.  
 //              The first number is the size of the array in argument X, 
 //              the second the size of Y.
-//     F: a scalar field defined on the mesh.  Its size is dims[0]*dims[1].
+//     F: a scalar field defined on the mesh. Its size is dims[0]*dims[1].
 //
 //  Returns:  the number of cells that straddle 0, i.e., the number of cells
-//            that contains points who have F>0 and also have points with F<0.
+//            that contain points who have F[i]>0 and also have points with F[i]<0.
 //
+//  Note: F[i] is the value for the mesh at point i.
+//  	  A cell is defined by four points
 // ****************************************************************************
 
 int
@@ -282,8 +284,63 @@ CountNumberOfStraddlingCells(const float *X, const float *Y, const int *dims,
                              const float *F)
 {
 
-    return 0;
-    // IMPLEMENT ME!
+
+	int cellId, point_index, GT, LT, i, j;
+	float point_value;
+
+	int straddlingCells = 0;
+	int x_index = 0;
+	int y_index = 0;
+	
+	int idx[3];
+	idx[2] = 0; //2D mesh
+	int point[3];
+	point[2] = 0; //2D mesh
+
+	int max_cells = (dims[0] - 1) * (dims[1] - 1);
+
+
+//	for each cell
+	for (cellId = 0; cellId < max_cells; cellId++){
+
+		//reset counters		
+		GT = 0; 
+		LT = 0;
+
+//		get logical cell index for cell (now you have all 4 points)
+		GetLogicalCellIndex(idx, cellId, dims);
+
+// 		get point index for each of the four points of the cell
+		for(i = 0; i < 2; i++){
+			for(j = 0; j < 2; j++){
+
+				point[0] = idx[0]+ j;
+				point[1] = idx[1]+ i;
+
+//				convert each point to point index
+				point_index = GetPointIndex(point, dims);
+
+//				get value at each point index
+				point_value = F[point_index];
+
+//				increase counts if warrented
+				if(point_value > 0){
+					GT++;
+				}
+				if(point_value < 0){
+					LT++;
+				}
+			}
+		}
+		
+//		If a vertex value is < 0 and another is > 0
+		if(GT && LT){
+//			Straddling cell found
+			straddlingCells++;
+		}
+	}
+
+    return straddlingCells;
 }
 
 int main()

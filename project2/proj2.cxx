@@ -208,33 +208,70 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
 //
 // ****************************************************************************
 
+float interpolate(const float scalar_A, const float scalar_B, const float actual_A, const float actual_B, const float actual_X){
+
+	float t = (actual_X - actual_A)/(actual_B - actual_A);
+	float result = scalar_A + t * (scalar_B - scalar_A);
+	return result;
+}
+
 float
 EvaluateFieldAtLocation(const float *pt, const int *dims, 
                         const float *X, const float *Y, const float *F)
 {
 	int x_index, y_index;
-	float x_vals[2], y_val[2];
 
-//	find which cell pt is inside of
+	// logical index of points bounding containing cell
+	int logical_ll[2] = {-1, -1};
+	int logical_lr[2] = {-1, -1};
+	int logical_ul[2] = {-1, -1};
+	int logical_ur[2] = {-1, -1};
 
-//	find lower left logical index of cell
+	// values in scalar field of points bounding containing cell
+	float scalar_ll, scalar_lr, scalar_ul, scalar_ur, top, bot, dif;
+
+//	find the logical index (x,y) of the four corners of the cell that contains pt.
 	for(x_index = 0; x_index < (dims[0]-1); x_index++){
 		if ((X[x_index] <= pt[0]) && (pt[0] <= X[x_index + 1])){
-
+			logical_ll[0] = x_index;
+			logical_lr[0] = x_index + 1;
+			logical_ul[0] = x_index;
+			logical_ur[0] = x_index + 1;
 			break;
 		}
 	}
+	
 	for(y_index = 0; y_index < (dims[1]-1); y_index++){
 		if ((Y[y_index] <= pt[1]) && (pt[1] <= Y[y_index + 1])){
-			
+			logical_ll[1] = y_index;
+			logical_lr[1] = y_index;
+			logical_ul[1] = y_index + 1;
+			logical_ur[1] = y_index + 1;
 			break;
 		}
 	}
+	if(logical_ll[0] == -1 || logical_ll[1] == -1){
+		return 0;
+	}	
 
-//	find value of pt inside the cell
+//	find values in scalar field of points bounding containing cell
+	
+	scalar_ll = F[GetPointIndex(logical_ll, dims)];
+	scalar_lr = F[GetPointIndex(logical_lr, dims)];
+	scalar_ul = F[GetPointIndex(logical_ul, dims)];
+	scalar_ur = F[GetPointIndex(logical_ur, dims)];
 
+// 	interpolate find value of pt inside the cell
+	// interp bot
+	bot = interpolate(scalar_ll, scalar_lr, X[x_index], X[x_index + 1], pt[0]);
 
-    return 0; // IMPLEMENT ME!!
+	// interp top
+	top = interpolate(scalar_ul, scalar_ur, X[x_index], X[x_index + 1], pt[0]);
+
+	// interp dif
+	dif = interpolate(bot, top, Y[y_index], Y[y_index + 1], pt[1]);
+
+    return dif; // IMPLEMENT ME!!
 }
 
 // ****************************************************************************
@@ -410,18 +447,12 @@ int main()
             {0.666757, 0.60259, 0},
          };
 
-    
-
     for (i = 0 ; i < npts ; i++)
     {
         float f = EvaluateFieldAtLocation(pt[i], dims, X, Y, F);
         cerr << "Evaluated field at (" << pt[i][0] <<"," << pt[i][1] << ") as "
              << f << endl;
     }
-
-	cerr << "size of x: " << dims[0] << endl;
-	cerr << "last val in x: " << X[dims[0]-1] << endl;
-    
 }
 
 

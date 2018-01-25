@@ -333,16 +333,20 @@ ApplyDifferenceColorMap(float F, unsigned char *RGB)
 
 	float cutoff = .5;
 
-	if(F <= cutoff){
+	F = (float) F;
+
+	if(F <= cutoff)
+	{
 		r_val = (F * 2) * (R_VALS[1] - R_VALS[0]) + R_VALS[0];
 		g_val = (F * 2) * (G_VALS[1] - G_VALS[0]) + G_VALS[0];
 		b_val = (F * 2) * (B_VALS[1] - B_VALS[0]) + B_VALS[0];
 	}
 
-	else if(F > cutoff){
-		r_val = ((F - cutoff) / cutoff) * (R_VALS[1] - R_VALS[2]) + R_VALS[2];
-		g_val = ((F - cutoff) / cutoff) * (G_VALS[1] - G_VALS[2]) + G_VALS[2];
-		b_val = ((F - cutoff) / cutoff) * (B_VALS[1] - B_VALS[2]) + B_VALS[2];
+	else if (F > cutoff)
+	{
+		r_val = R_VALS[1] - (((F - cutoff) / cutoff) * (R_VALS[1] - R_VALS[2]));
+		g_val = G_VALS[1] - (((F - cutoff) / cutoff) * (G_VALS[1] - G_VALS[2]));
+		b_val = B_VALS[1] - (((F - cutoff) / cutoff) * (B_VALS[1] - B_VALS[2]));
 	}
 
 	RGB[0] = r_val;
@@ -397,6 +401,7 @@ hsvToRGB(float hue, float saturation, float value)
 void
 ApplyHSVColorMap(float F, unsigned char *RGB)
 {
+	
 }
 
 

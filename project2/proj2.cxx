@@ -271,7 +271,7 @@ EvaluateFieldAtLocation(const float *pt, const int *dims,
 	// interp dif
 	dif = interpolate(bot, top, Y[y_index], Y[y_index + 1], pt[1]);
 
-    return dif; // IMPLEMENT ME!!
+    return dif;
 }
 
 // ****************************************************************************

@@ -153,6 +153,14 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
     idx[1] = cellId/(dims[0]-1);
 }
 
+
+float interpolate(const float scalar_A, const float scalar_B, const float actual_A, const float actual_B, const float actual_X){
+
+	float t = (actual_X - actual_A)/(actual_B - actual_A);
+	float result = scalar_A + t * (scalar_B - scalar_A);
+	return result;
+}
+
 // ****************************************************************************
 //  Function: EvaluateFieldAtLocation
 //
@@ -171,8 +179,9 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
 //
 // ****************************************************************************
 
-float EvaluateFieldAtLocation(const float *pt, const int *dims, const float *X, 
-                              const float *Y, const float *F)
+float
+EvaluateFieldAtLocation(const float *pt, const int *dims, 
+                        const float *X, const float *Y, const float *F)
 {
 	int x_index, y_index;
 
@@ -208,6 +217,25 @@ float EvaluateFieldAtLocation(const float *pt, const int *dims, const float *X,
 	if(logical_ll[0] == -1 || logical_ll[1] == -1){
 		return 0;
 	}	
+
+//	find values in scalar field of points bounding containing cell
+	
+	scalar_ll = F[GetPointIndex(logical_ll, dims)];
+	scalar_lr = F[GetPointIndex(logical_lr, dims)];
+	scalar_ul = F[GetPointIndex(logical_ul, dims)];
+	scalar_ur = F[GetPointIndex(logical_ur, dims)];
+
+// 	interpolate find value of pt inside the cell
+	// interp bot
+	bot = interpolate(scalar_ll, scalar_lr, X[x_index], X[x_index + 1], pt[0]);
+
+	// interp top
+	top = interpolate(scalar_ul, scalar_ur, X[x_index], X[x_index + 1], pt[0]);
+
+	// interp dif
+	dif = interpolate(bot, top, Y[y_index], Y[y_index + 1], pt[1]);
+
+    return dif;
 }
 
 
@@ -258,6 +286,20 @@ NewImage(int width, int height)
 void
 ApplyBlueHotColorMap(float F, unsigned char *RGB)
 {
+	//printf("%f\n", F);
+	int RGB_MAX = 255;
+	int R_MIN = 0;
+	int G_MIN = 0;
+	int B_MIN = 128;
+
+	float r_val = F * (RGB_MAX - R_MIN) + R_MIN;
+	float g_val = F * (RGB_MAX - G_MIN) + G_MIN;
+	float b_val = F * (RGB_MAX - B_MIN) + B_MIN;
+
+	RGB[0] = r_val;
+	RGB[1] = g_val;
+	RGB[2] = b_val;
+	//printf("%f\n", r_val);
 }
 
 
@@ -268,10 +310,10 @@ ApplyBlueHotColorMap(float F, unsigned char *RGB)
 //     Maps a normalized scalar value F (0<=F<=1) to a color using a divergent colormap
 //
 //     The divergent color map has:
-//        F=0: (0,0,128) 
-//        F=0.5: (255,255,255) 
-//        F=1: (128, 0, 0)
-//       and smooth interpolation in between
+//        F = 0:	(0,0,128) 
+//        F = 0.5:	(255,255,255) 
+//        F = 1: 	(128, 0, 0)
+//        and smooth interpolation in between
 //
 //  Arguments:
 //       F (input):     a scalar value between 0 and 1
@@ -281,7 +323,62 @@ ApplyBlueHotColorMap(float F, unsigned char *RGB)
 void
 ApplyDifferenceColorMap(float F, unsigned char *RGB)
 {
+	float r_val = 255.0;
+	float g_val = 255.0;
+	float b_val = 255.0;
+
+	int R_VALS[] = {0, 255, 128};
+	int G_VALS[] = {0, 255, 0};
+	int B_VALS[] = {128, 255, 0};	
+
+	float cutoff = .5;
+
+	if(F <= cutoff){
+		r_val = (F * 2) * (R_VALS[1] - R_VALS[0]) + R_VALS[0];
+		g_val = (F * 2) * (G_VALS[1] - G_VALS[0]) + G_VALS[0];
+		b_val = (F * 2) * (B_VALS[1] - B_VALS[0]) + B_VALS[0];
+	}
+
+	else if(F > cutoff){
+		r_val = ((F - cutoff) / cutoff) * (R_VALS[1] - R_VALS[2]) + R_VALS[2];
+		g_val = ((F - cutoff) / cutoff) * (G_VALS[1] - G_VALS[2]) + G_VALS[2];
+		b_val = ((F - cutoff) / cutoff) * (B_VALS[1] - B_VALS[2]) + B_VALS[2];
+	}
+
+	RGB[0] = r_val;
+	RGB[1] = g_val;
+	RGB[2] = b_val;
 }
+
+//From Slides
+
+/*
+hsvToRGB(float hue, float saturation, float value)
+{
+	if(saturation == 0 ) // achromatic (grey)
+	{
+		r = g = b = v;
+	}
+	else
+	{
+		hue /= 60.f;
+		// sector 0 to 5
+		i = floor( hue );
+		f = hue - i;
+		// factorial part of h
+		p = value * ( 1 - saturation);
+		q = value * ( 1 - saturation * f );
+		t = value * ( 1 - saturation * ( 1 - f ) );
+		switch( i ):
+			case 0: r = v; g = t; b = p;
+			case 1: r = q; g = v; b p;
+			case 2: r = p; g = v; b = t;
+			case 3: r = p; g = q; b = v;
+			case 4: r = t; g = p; b = v;
+			case 5: r = v; g = p; b = q;
+		}
+}
+*/
 
 // ****************************************************************************
 //  Function: ApplyBHSVColorMap
@@ -335,14 +432,19 @@ int main()
             buffer[j][i] = 0;
 
     for (i = 0 ; i < nx ; i++)
+    {
         for (j = 0 ; j < ny ; j++)
         {
             // ITERATE OVER PIXELS
             float pt[2];
-            //pt[0] = ...;
-            //pt[1] = ...;
-            //float f = ...;
-            float normalizedF = 0; //...; see step 5 re 1.2->5.02
+            pt[0] = -9.0 + 18.0 * (((float)i) / ((float)(nx-1)));
+            pt[1] = -9.0 + 18.0 * (((float)j) / ((float)(ny-1)));
+            //printf("pt: (%f, %f)\n", pt[0], pt[1]);
+            float f = EvaluateFieldAtLocation(pt, dims, X, Y, F);
+            //printf("val: %f\n", f);
+            float MAX_SCAL_VAL = 5.02;
+            float MIN_SCAL_VAL = 1.2;
+            float normalizedF = (f - MIN_SCAL_VAL)/(MAX_SCAL_VAL - MIN_SCAL_VAL); 
             
             // I TAKE OVER HERE
             int offset = 3*(j*nx+i);
@@ -350,7 +452,7 @@ int main()
             ApplyDifferenceColorMap(normalizedF, buffer[1]+offset);
             ApplyHSVColorMap(normalizedF, buffer[2]+offset);
         }
-
+    }
     WriteImage(images[0], "bluehot");
     WriteImage(images[1], "difference");
     WriteImage(images[2], "hsv");

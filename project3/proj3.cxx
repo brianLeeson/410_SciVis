@@ -286,7 +286,6 @@ NewImage(int width, int height)
 void
 ApplyBlueHotColorMap(float F, unsigned char *RGB)
 {
-	//printf("%f\n", F);
 	int RGB_MAX = 255;
 	int R_MIN = 0;
 	int G_MIN = 0;
@@ -299,7 +298,6 @@ ApplyBlueHotColorMap(float F, unsigned char *RGB)
 	RGB[0] = r_val;
 	RGB[1] = g_val;
 	RGB[2] = b_val;
-	//printf("%f\n", r_val);
 }
 
 
@@ -354,36 +352,6 @@ ApplyDifferenceColorMap(float F, unsigned char *RGB)
 	RGB[2] = b_val;
 }
 
-//From Slides
-
-/*
-hsvToRGB(float hue, float saturation, float value)
-{
-	if(saturation == 0 ) // achromatic (grey)
-	{
-		r = g = b = v;
-	}
-	else
-	{
-		hue /= 60.f;
-		// sector 0 to 5
-		i = floor( hue );
-		f = hue - i;
-		// factorial part of h
-		p = value * ( 1 - saturation);
-		q = value * ( 1 - saturation * f );
-		t = value * ( 1 - saturation * ( 1 - f ) );
-		switch( i ):
-			case 0: r = v; g = t; b = p;
-			case 1: r = q; g = v; b p;
-			case 2: r = p; g = v; b = t;
-			case 3: r = p; g = q; b = v;
-			case 4: r = t; g = p; b = v;
-			case 5: r = v; g = p; b = q;
-		}
-}
-*/
-
 // ****************************************************************************
 //  Function: ApplyBHSVColorMap
 //
@@ -401,7 +369,41 @@ hsvToRGB(float hue, float saturation, float value)
 void
 ApplyHSVColorMap(float F, unsigned char *RGB)
 {
+	float r,g,b;
+
+	float hue = F * 360;
+	float value = 1.0;
+	float saturation = 1.0;
+
+	hue /= 60.f;
+	int i = floor(hue);
 	
+	float f = hue - i;
+
+	// factorial part of h
+	float p = value * (1 - saturation);
+	float q = value * (1 - saturation * f);
+	float t = value * (1 - saturation * (1 - f));
+	float v = value;
+
+	switch(i)
+	{
+		case 0: 
+			r = v; g = t; b = p; break;
+		case 1: 
+			r = q; g = v; b = p; break;
+		case 2: 
+			r = p; g = v; b = t; break;
+		case 3: 
+			r = p; g = q; b = v; break;
+		case 4: 
+			r = t; g = p; b = v; break;
+		case 5: 
+			r = v; g = p; b = q; break;
+	}
+	RGB[0] = r * 255;
+	RGB[1] = g * 255;
+	RGB[2] = b * 255;
 }
 
 

@@ -167,6 +167,16 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
 }
 
 
+/*
+	Helper function interpolate. returns the interpolated value between actual_A and actual_B
+*/
+void interpolate(const float *vector_A, const float *vector_B, const float actual_A, const float actual_B, const float actual_X, float *interp_vect){
+	float t = (actual_X - actual_A)/(actual_B - actual_A);
+	interp_vect[0] = vector_A[0] + t * (vector_B[0] - vector_A[0]);
+	interp_vect[1] = vector_A[1] + t * (vector_B[1] - vector_A[1]);
+}
+
+
 // ****************************************************************************
 //  Function: EvaluateVectorFieldAtLocation
 //
@@ -191,11 +201,82 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
 void EvaluateVectorFieldAtLocation(const float *pt, const int *dims, const float *X, 
                               const float *Y, const float *F, float *rv)
 {
-    // IMPLEMENT ME!
+	int x_index, y_index;
+
+	//initialize
+	rv[0] = 0; // setting the x-component of the velocity
+    rv[1] = 0; // setting the y-component of the velocity
+
+	// initialize logical index of points bounding cell containing point pt
+	int logical_ll[2] = {-1, -1};
+	int logical_lr[2] = {-1, -1};
+	int logical_ul[2] = {-1, -1};
+	int logical_ur[2] = {-1, -1};
 	
 
-    rv[0] = 0; // setting the x-component of the velocity
-    rv[1] = 0; // setting the y-component of the velocity
+//	find the logical index (x,y) of the four corners of the cell that contains pt.
+	for(x_index = 0; x_index < (dims[0]-1); x_index++){
+		if ((X[x_index] <= pt[0]) && (pt[0] <= X[x_index + 1])){
+			logical_ll[0] = x_index;
+			logical_lr[0] = x_index + 1;
+			logical_ul[0] = x_index;
+			logical_ur[0] = x_index + 1;
+			break;
+		}
+	}
+	
+	for(y_index = 0; y_index < (dims[1]-1); y_index++){
+		if ((Y[y_index] <= pt[1]) && (pt[1] <= Y[y_index + 1])){
+			logical_ll[1] = y_index;
+			logical_lr[1] = y_index;
+			logical_ul[1] = y_index + 1;
+			logical_ur[1] = y_index + 1;
+			break;
+		}
+	}
+	//Check if pt was not bounds
+	if(logical_ll[0] == -1 || logical_ll[1] == -1){
+		return;
+	}	
+
+	//printf("--- ll (x,y): (%f,%f)\n", X[logical_ll[0]], Y[logical_ll[1]]);
+	//printf("--- lr (x,y): (%f,%f)\n", X[logical_lr[0]], Y[logical_lr[1]]);
+	//printf("--- ul (x,y): (%f,%f)\n", X[logical_ul[0]], Y[logical_ul[1]]);
+	//printf("--- ur (x,y): (%f,%f)\n", X[logical_ur[0]], Y[logical_ur[1]]);
+
+	//get values at the corners bounding the point pt 
+	int pointIndex;
+	pointIndex = GetPointIndex(logical_ll, dims);
+	float vector_ll[2] = {F[2*pointIndex], F[2*pointIndex+1]};
+
+	pointIndex = GetPointIndex(logical_lr, dims);
+	float vector_lr[2] = {F[2*pointIndex], F[2*pointIndex+1]};
+
+	pointIndex = GetPointIndex(logical_ul, dims);
+	float vector_ul[2] = {F[2*pointIndex], F[2*pointIndex+1]};
+
+	pointIndex = GetPointIndex(logical_ur, dims);
+	float vector_ur[2] = {F[2*pointIndex], F[2*pointIndex+1]};
+
+	//printf("--- vect ll (x,y): (%f,%f)\n", vector_ll[0], vector_ll[1]);
+	//printf("--- lr (x,y): (%f,%f)\n", X[logical_lr[0]], Y[logical_lr[1]]);
+	//printf("--- ul (x,y): (%f,%f)\n", X[logical_ul[0]], Y[logical_ul[1]]);
+	//printf("--- ur (x,y): (%f,%f)\n", X[logical_ur[0]], Y[logical_ur[1]]);
+
+// 	interpolate find value of pt inside the cell
+	float vect_top[2];
+	float vect_bot[2];
+	float vect_dif[2];
+
+	// interp bot
+	interpolate(vector_ll, vector_lr, X[x_index], X[x_index + 1], pt[0], vect_bot);
+
+	// interp top
+	interpolate(vector_ul, vector_ur, X[x_index], X[x_index + 1], pt[0], vect_top);
+
+	// interp result value
+	interpolate(vect_bot, vect_top, Y[y_index], Y[y_index + 1], pt[1], rv);
+    
 }
 
 // ****************************************************************************

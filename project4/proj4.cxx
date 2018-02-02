@@ -239,11 +239,6 @@ void EvaluateVectorFieldAtLocation(const float *pt, const int *dims, const float
 		return;
 	}	
 
-	//printf("--- ll (x,y): (%f,%f)\n", X[logical_ll[0]], Y[logical_ll[1]]);
-	//printf("--- lr (x,y): (%f,%f)\n", X[logical_lr[0]], Y[logical_lr[1]]);
-	//printf("--- ul (x,y): (%f,%f)\n", X[logical_ul[0]], Y[logical_ul[1]]);
-	//printf("--- ur (x,y): (%f,%f)\n", X[logical_ur[0]], Y[logical_ur[1]]);
-
 	//get values at the corners bounding the point pt 
 	int pointIndex;
 	pointIndex = GetPointIndex(logical_ll, dims);
@@ -257,11 +252,6 @@ void EvaluateVectorFieldAtLocation(const float *pt, const int *dims, const float
 
 	pointIndex = GetPointIndex(logical_ur, dims);
 	float vector_ur[2] = {F[2*pointIndex], F[2*pointIndex+1]};
-
-	//printf("--- vect ll (x,y): (%f,%f)\n", vector_ll[0], vector_ll[1]);
-	//printf("--- lr (x,y): (%f,%f)\n", X[logical_lr[0]], Y[logical_lr[1]]);
-	//printf("--- ul (x,y): (%f,%f)\n", X[logical_ul[0]], Y[logical_ul[1]]);
-	//printf("--- ur (x,y): (%f,%f)\n", X[logical_ur[0]], Y[logical_ur[1]]);
 
 // 	interpolate find value of pt inside the cell
 	float vect_top[2];
@@ -324,13 +314,17 @@ AdvectWithEulerStep(const float *pt, const int *dims, const float *X,
 
 	for(int i = 0; i <= nsteps; i++)
 	{
+		//set output_location to be the current point
 		output_locations[2*i] = cur_point[0];
 		output_locations[(2*i)+1] = cur_point[1];
 
+		//eval vector field at current point
 		EvaluateVectorFieldAtLocation(cur_point, dims, X, Y, F, rv);
-
+		
+		//set vector field at current point
 		speeds[i] = findHypot(rv[0], rv[1]);
 
+		//update current point to be next point
 		cur_point[0] = cur_point[0] + (h * rv[0]);
 		cur_point[1] = cur_point[1] + (h * rv[1]);
 	}
@@ -352,14 +346,19 @@ float
 CalculateArcLength(const float *locations, int nlocations)
 {
 	float archLength = 0;
-	float sideA, sideB;
+	float sideX, sideY, x1, x2, y1, y2;
 	int i;	
-	for(i = 0; i < nlocations; i++)
+	for(i = 0; i < (nlocations-1); i++)
 	{
-		sideA = locations[2*i] - locations[2*(i+1)];
-		sideB = locations[2*i+1] -locations[2*(i+1)+1];
+		x1 = locations[2*i];
+		x2 = locations[(2*i)+2];
+		y1 = locations[(2*i)+1];
+		y2 = locations[(2*i)+1+2];
+		
+		sideX =  x1 - x2;
+		sideY =  y1 - y2;
 			
-		archLength = archLength + findHypot(sideA, sideB);
+		archLength = archLength + findHypot(sideX, sideY);
 	}
 
     return archLength;

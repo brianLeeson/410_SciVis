@@ -279,6 +279,13 @@ void EvaluateVectorFieldAtLocation(const float *pt, const int *dims, const float
     
 }
 
+//finds the hypot of a triangle with sides a and b
+float findHypot(const float a, const float b)
+{
+	return sqrt(pow(a,2) + pow(b,2));
+}
+
+
 // ****************************************************************************
 //  Function: AdvectWithEulerStep
 //
@@ -310,16 +317,23 @@ AdvectWithEulerStep(const float *pt, const int *dims, const float *X,
                     const float *Y, const float *F, 
                     float h, int nsteps, float *output_locations, float *speeds)
 {
-    // IMPLEMENT ME!
+	//pt is seed location
+	float cur_point[2], rv[2];
+	cur_point[0] = pt[0];
+	cur_point[1] = pt[1];
 
-    output_locations[0] = 0; // set the x component of the first output location
-    output_locations[1] = 0; // set the y component of the first output location
-    output_locations[2] = 0; // set the x component of the second output location
-    output_locations[3] = 0; // set the y component of the second output location
-    // ...
-    speeds[0] = 0; // set the speed at the first output location
-    speeds[1] = 0; // set the speed at the second output location
-    // ...
+	for(int i = 0; i <= nsteps; i++)
+	{
+		output_locations[2*i] = cur_point[0];
+		output_locations[(2*i)+1] = cur_point[1];
+
+		EvaluateVectorFieldAtLocation(cur_point, dims, X, Y, F, rv);
+
+		speeds[i] = findHypot(rv[0], rv[1]);
+
+		cur_point[0] = cur_point[0] + (h * rv[0]);
+		cur_point[1] = cur_point[1] + (h * rv[1]);
+	}
 }
 
 // ****************************************************************************
@@ -335,10 +349,20 @@ AdvectWithEulerStep(const float *pt, const int *dims, const float *X,
 // ****************************************************************************
 
 float
-CalculateArcLength(const float *output_locations, int nlocations)
+CalculateArcLength(const float *locations, int nlocations)
 {
-    // IMPLEMENT ME!
-    return 0;
+	float archLength = 0;
+	float sideA, sideB;
+	int i;	
+	for(i = 0; i < nlocations; i++)
+	{
+		sideA = locations[2*i] - locations[2*(i+1)];
+		sideB = locations[2*i+1] -locations[2*(i+1)+1];
+			
+		archLength = archLength + findHypot(sideA, sideB);
+	}
+
+    return archLength;
 }
 
 void

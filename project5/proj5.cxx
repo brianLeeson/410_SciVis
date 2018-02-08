@@ -261,6 +261,7 @@ SegmentList::MakePolyData(void)
 int main()
 {
     int  i, j;
+	float iso_val = 3.2;
 
     vtkDataSetReader *rdr = vtkDataSetReader::New();
     rdr->SetFileName("proj5.vtk");
@@ -284,7 +285,7 @@ int main()
 
 // YOUR CODE TO GENERATE ISOLINES SHOULD GO HERE!
 	int numSegments[16] = {0,1,1,1,1,1,2,1,1,2,1,1,1,1,1,0};
-	int numSegments[16];
+	int lup[16][4];
 	lup[0][0] = lup[0][1] = lup[0][2] = lup[0][3] = -1;
 	lup[1][0] = 3; lup[1][1] = 0; lup[1][2] = lup[1][3] = -1;
 	lup[2][0] = 0; lup[2][1] = 1; lup[2][2] = lup[2][3] = -1;
@@ -302,6 +303,43 @@ int main()
 	lup[14][0] = 3; lup[14][1] = 0; lup[14][2] = lup[14][3] = -1;
 	lup[15][0] = lup[15][1] = lup[15][2] = lup[15][3] = -1;
 
+	//for each cell index
+	int cellId = 0;
+	int num_cells = GetNumberOfCells(dims);
+	int idx[2];
+	int ll_logical[2] = {-1,-1};
+	int lr_logical[2] = {-1,-1};
+	int ul_logical[2] = {-1,-1};
+	int ur_logical[2] = {-1,-1};
+
+	float ll_scalar, lr_scalar, ul_scalar, ur_scalar;
+
+	for (int cellId = 0; cellId < num_cells; cellId++)
+	{
+		//figure out what the logical cell index (x,y of lower left corner) is
+		GetLogicalCellIndex(idx, cellId, dims);
+
+		//figure out logical point index (x,y) for all 4 corners
+		ll_logical[0] = idx[0];
+		ll_logical[1] = idx[1];
+
+		lr_logical[0] = idx[0] + 1;
+		lr_logical[1] = idx[1];
+
+		ul_logical[0] = idx[0];
+		ul_logical[1] = idx[1] + 1;
+
+		ur_logical[0] = idx[0] + 1;
+		ur_logical[1] = idx[1] + 1;
+
+		//get the values in the scalar field for each corner
+		ll_scalar = F[GetPointIndex(ll_logical, dims)];
+		lr_scalar = F[GetPointIndex(lr_logical, dims)];
+		ul_scalar = F[GetPointIndex(ul_logical, dims)];
+		ur_scalar = F[GetPointIndex(ur_logical, dims)];
+
+		//figure out what case you are in
+	}
     vtkPolyData *pd = sl.MakePolyData();
 
     //This can be useful for debugging

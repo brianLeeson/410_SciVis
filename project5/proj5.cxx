@@ -263,7 +263,7 @@ int main()
     int  i, j;
 
     vtkDataSetReader *rdr = vtkDataSetReader::New();
-    rdr->SetFileName("proj6.vtk");
+    rdr->SetFileName("proj5.vtk");
     rdr->Update();
 
     int dims[3];
@@ -283,6 +283,24 @@ int main()
     sl.AddSegment(+10, -10, +10, +10);
 
 // YOUR CODE TO GENERATE ISOLINES SHOULD GO HERE!
+	int numSegments[16] = {0,1,1,1,1,1,2,1,1,2,1,1,1,1,1,0};
+	int numSegments[16];
+	lup[0][0] = lup[0][1] = lup[0][2] = lup[0][3] = -1;
+	lup[1][0] = 3; lup[1][1] = 0; lup[1][2] = lup[1][3] = -1;
+	lup[2][0] = 0; lup[2][1] = 1; lup[2][2] = lup[2][3] = -1;
+	lup[3][0] = 3; lup[3][1] = 1; lup[3][2] = lup[3][3] = -1;
+	lup[4][0] = 3; lup[4][1] = 2; lup[4][2] = lup[4][3] = -1;
+	lup[5][0] = 1; lup[5][1] = 2; lup[5][2] = lup[5][3] = -1;
+	lup[6][0] = 0; lup[6][1] = 1; lup[6][2] = 2; lup[6][3] = 3;
+	lup[7][0] = 1; lup[7][1] = 2; lup[7][2] = lup[7][3] = -1;
+	lup[8][0] = 1; lup[8][1] = 2; lup[8][2] = lup[8][3] = -1;
+	lup[9][0] = 0; lup[9][1] = 1; lup[9][2] = 2; lup[9][3] = 3;
+	lup[10][0] = 1; lup[10][1] = 2; lup[10][2] = lup[10][3] = -1;
+	lup[11][0] = 3; lup[11][1] = 2; lup[11][2] = lup[11][3] = -1;
+	lup[12][0] = 3; lup[12][1] = 1; lup[12][2] = lup[12][3] = -1;
+	lup[13][0] = 0; lup[13][1] = 1; lup[13][2] = lup[12][3] = -1;
+	lup[14][0] = 3; lup[14][1] = 0; lup[14][2] = lup[14][3] = -1;
+	lup[15][0] = lup[15][1] = lup[15][2] = lup[15][3] = -1;
 
     vtkPolyData *pd = sl.MakePolyData();
 

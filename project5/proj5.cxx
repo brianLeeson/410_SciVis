@@ -313,6 +313,12 @@ int main()
 	int ur_logical[2] = {-1,-1};
 
 	float ll_scalar, lr_scalar, ul_scalar, ur_scalar;
+	int X_MIN = X[0];
+	int X_MAX = X[dims[0]];
+	float X_WIDTH = (float) X_MAX - X_MIN;
+	int Y_MIN = Y[0];
+	int Y_MAX = Y[dims[1]];
+	float Y_HEIGHT = (float) Y_MAX - Y_MIN;
 
 	for (int cellId = 0; cellId < num_cells; cellId++)
 	{
@@ -339,6 +345,110 @@ int main()
 		ur_scalar = F[GetPointIndex(ur_logical, dims)];
 
 		//figure out what case you are in
+		unsigned char icase = 0x00;
+		if (ll_scalar > iso_val) {icase |= 0x01;}
+		if (lr_scalar > iso_val) {icase |= 0x02;}
+		if (ul_scalar > iso_val) {icase |= 0x04;}
+		if (ur_scalar > iso_val) {icase |= 0x08;}
+
+		//printf("%d \n", icase);
+		
+		//construct edges
+		int nsegments = numSegments[icase];
+		int edge1, edge2, i;
+		float pt1[2], pt2[2];
+		float iso_dist, scal_dist;
+		for (i = 0 ; i < nsegments ; i++)
+		{
+			edge1 = lup[icase][2*i];
+			// Interpolate position along edge1
+			if (edge1 == 0)
+			{
+				//printf("edge: %d\n", edge1);
+				pt1[1] = (float) ll_logical[1];
+				iso_dist = fabs(ll_scalar - iso_val);
+				scal_dist = fabs(ll_scalar - lr_scalar);
+				pt1[0] = ll_logical[0] + iso_dist/scal_dist;
+			}			
+			else if (edge1 == 1)
+			{
+				//printf("edge: %d\n", edge1);
+				pt1[0] = (float) lr_logical[0];
+				iso_dist = fabs(lr_scalar - iso_val);
+				scal_dist = fabs(lr_scalar - ur_scalar);
+				pt1[1] = lr_logical[1] + iso_dist/scal_dist;
+			}
+			else if (edge1 == 2)
+			{
+				//printf("edge: %d\n", edge1);
+				pt1[1] = (float) ul_logical[1];
+				iso_dist = fabs(ul_scalar - iso_val);
+				scal_dist = fabs(ul_scalar - ur_scalar);
+				pt1[0] = ul_logical[0] + iso_dist/scal_dist;
+			}
+			else if (edge1 == 3)
+			{
+				//printf("edge: %d\n", edge1);
+				pt1[0] = (float) ll_logical[0];
+				iso_dist = fabs(ll_scalar - iso_val);
+				scal_dist = fabs(ll_scalar - ul_scalar);
+				pt1[1] = (float) ll_logical[1] + iso_dist/scal_dist;
+				//printf("iso_d: %f, scal_d: %f\n", iso_dist, scal_dist);
+				//printf("ll_scalar: %f\n", ll_scalar);
+				//printf("iso_val: %f\n", iso_val);
+				//printf("ll_s - iso_cal = %f\n", ll_scalar - iso_val);
+			}
+			else printf("--- ERROR\n");
+
+
+			edge2 = lup[icase][2*i+1];
+			// Interpolate position along edge2
+			if ( edge2 == 0)
+			{
+				pt2[1] = (float) ll_logical[1];
+				iso_dist = fabs(ll_scalar - iso_val);
+				scal_dist = fabs(ll_scalar - lr_scalar);
+				pt2[0] = ll_logical[0] + iso_dist/scal_dist;
+			}			
+			else if ( edge2 == 1)
+			{
+				pt2[0] = (float) lr_logical[0];
+				iso_dist = fabs(lr_scalar - iso_val);
+				scal_dist = fabs(lr_scalar - ur_scalar);
+				pt2[1] = lr_logical[1] + iso_dist/scal_dist;
+			}
+			else if ( edge2 == 2)
+			{
+				pt2[1] = (float) ul_logical[1];
+				iso_dist = fabs(ul_scalar - iso_val);
+				scal_dist = fabs(ul_scalar - ur_scalar);
+				pt2[0] = ul_logical[0] + iso_dist/scal_dist;
+			}
+			else if ( edge2 == 3)
+			{
+				pt2[0] = (float) ll_logical[0];
+				iso_dist = fabs(ll_scalar - iso_val);
+				scal_dist = fabs(ll_scalar - ul_scalar);
+				pt2[1] = ll_logical[1] + iso_dist/scal_dist;
+			}
+			else printf("--- ERROR\n");
+
+			//normalize
+			pt1[0] = -10.0 + (pt1[0]/(X_WIDTH)) * 20.0;
+			pt1[1] = -10.0 + (pt1[1]/(Y_HEIGHT)) * 20.0;
+			pt2[0] = -10.0 + (pt2[0]/(X_WIDTH)) * 20.0;
+			pt2[1] = -10.0 + (pt2[1]/(Y_HEIGHT)) * 20.0;
+			printf("X_WIDTH: %f, Y_HEIGHT: %f\n", X_WIDTH, Y_HEIGHT);
+			// TODO I think the problem is in how pt is calculated initially.
+			// normalization probably is correct
+			
+
+			//AddLineSegmentToOutput(pt1, pt2);
+			printf("point: p1(%f, %f), p2(%f, %f)\n", pt1[0], pt1[1], pt2[0], pt2[1]);
+			sl.AddSegment(pt1[0], pt1[1], pt2[0], pt2[1]);
+		}
+
+		
 	}
     vtkPolyData *pd = sl.MakePolyData();
 

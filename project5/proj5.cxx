@@ -291,19 +291,19 @@ int main()
 	lup[2][0] = 0; lup[2][1] = 1; lup[2][2] = lup[2][3] = -1;
 	lup[3][0] = 3; lup[3][1] = 1; lup[3][2] = lup[3][3] = -1;
 	lup[4][0] = 3; lup[4][1] = 2; lup[4][2] = lup[4][3] = -1;
-	lup[5][0] = 1; lup[5][1] = 2; lup[5][2] = lup[5][3] = -1;
+	lup[5][0] = 0; lup[5][1] = 2; lup[5][2] = lup[5][3] = -1;
 	lup[6][0] = 0; lup[6][1] = 1; lup[6][2] = 2; lup[6][3] = 3;
 	lup[7][0] = 1; lup[7][1] = 2; lup[7][2] = lup[7][3] = -1;
 	lup[8][0] = 1; lup[8][1] = 2; lup[8][2] = lup[8][3] = -1;
 	lup[9][0] = 0; lup[9][1] = 1; lup[9][2] = 2; lup[9][3] = 3;
-	lup[10][0] = 1; lup[10][1] = 2; lup[10][2] = lup[10][3] = -1;
+	lup[10][0] = 0; lup[10][1] = 2; lup[10][2] = lup[10][3] = -1;
 	lup[11][0] = 3; lup[11][1] = 2; lup[11][2] = lup[11][3] = -1;
 	lup[12][0] = 3; lup[12][1] = 1; lup[12][2] = lup[12][3] = -1;
-	lup[13][0] = 0; lup[13][1] = 1; lup[13][2] = lup[12][3] = -1;
+	lup[13][0] = 0; lup[13][1] = 1; lup[13][2] = lup[13][3] = -1;
 	lup[14][0] = 3; lup[14][1] = 0; lup[14][2] = lup[14][3] = -1;
 	lup[15][0] = lup[15][1] = lup[15][2] = lup[15][3] = -1;
 
-	//for each cell index
+	//for each cell
 	int cellId = 0;
 	int num_cells = GetNumberOfCells(dims);
 	int idx[2];
@@ -312,13 +312,8 @@ int main()
 	int ul_logical[2] = {-1,-1};
 	int ur_logical[2] = {-1,-1};
 
+	float ll_actual[2], lr_actual[2], ul_actual[2], ur_actual[2];
 	float ll_scalar, lr_scalar, ul_scalar, ur_scalar;
-	int X_MIN = X[0];
-	int X_MAX = X[dims[0]];
-	float X_WIDTH = (float) X_MAX - X_MIN;
-	int Y_MIN = Y[0];
-	int Y_MAX = Y[dims[1]];
-	float Y_HEIGHT = (float) Y_MAX - Y_MIN;
 
 	for (int cellId = 0; cellId < num_cells; cellId++)
 	{
@@ -326,6 +321,8 @@ int main()
 		GetLogicalCellIndex(idx, cellId, dims);
 
 		//figure out logical point index (x,y) for all 4 corners
+		printf("\ncellID: %d, idx (x,y): (%d, %d)\n", cellId, idx[0], idx[1]);
+
 		ll_logical[0] = idx[0];
 		ll_logical[1] = idx[1];
 
@@ -337,6 +334,20 @@ int main()
 
 		ur_logical[0] = idx[0] + 1;
 		ur_logical[1] = idx[1] + 1;
+
+		//range -10 - 10	
+		ll_actual[0] = X[idx[0]];
+		ll_actual[1] = Y[idx[1]];
+
+		lr_actual[0] = X[idx[0] + 1];
+		lr_actual[1] = Y[idx[1]];
+
+		ul_actual[0] = X[idx[0]];
+		ul_actual[1] = Y[idx[1] + 1];
+
+		ur_actual[0] = X[idx[0] + 1];
+		ur_actual[1] = Y[idx[1] + 1];
+
 
 		//get the values in the scalar field for each corner
 		ll_scalar = F[GetPointIndex(ll_logical, dims)];
@@ -351,7 +362,7 @@ int main()
 		if (ul_scalar > iso_val) {icase |= 0x04;}
 		if (ur_scalar > iso_val) {icase |= 0x08;}
 
-		//printf("%d \n", icase);
+		printf("in case: %d \n", icase);
 		
 		//construct edges
 		int nsegments = numSegments[icase];
@@ -364,92 +375,84 @@ int main()
 			// Interpolate position along edge1
 			if (edge1 == 0)
 			{
-				//printf("edge: %d\n", edge1);
+				printf("edge1: %d\n", edge1);
 				pt1[1] = (float) ll_logical[1];
 				iso_dist = fabs(ll_scalar - iso_val);
 				scal_dist = fabs(ll_scalar - lr_scalar);
-				pt1[0] = ll_logical[0] + iso_dist/scal_dist;
+				pt1[0] = ll_actual[0] + (abs(ll_actual[0] - lr_actual[0])) * (iso_dist/scal_dist); 
 			}			
 			else if (edge1 == 1)
 			{
-				//printf("edge: %d\n", edge1);
+				printf("edge1: %d\n", edge1);
 				pt1[0] = (float) lr_logical[0];
 				iso_dist = fabs(lr_scalar - iso_val);
 				scal_dist = fabs(lr_scalar - ur_scalar);
-				pt1[1] = lr_logical[1] + iso_dist/scal_dist;
+				pt1[1] = lr_actual[1] + (abs(lr_actual[1] - ur_actual[1])) * (iso_dist/scal_dist);
 			}
 			else if (edge1 == 2)
 			{
-				//printf("edge: %d\n", edge1);
+				printf("edge1: %d\n", edge1);
 				pt1[1] = (float) ul_logical[1];
 				iso_dist = fabs(ul_scalar - iso_val);
 				scal_dist = fabs(ul_scalar - ur_scalar);
-				pt1[0] = ul_logical[0] + iso_dist/scal_dist;
+				pt1[0] = ul_actual[0] + (abs(ul_actual[0] - ur_actual[0])) * (iso_dist/scal_dist);
 			}
 			else if (edge1 == 3)
 			{
-				//printf("edge: %d\n", edge1);
+				printf("edge1: %d\n", edge1);
 				pt1[0] = (float) ll_logical[0];
 				iso_dist = fabs(ll_scalar - iso_val);
 				scal_dist = fabs(ll_scalar - ul_scalar);
-				pt1[1] = (float) ll_logical[1] + iso_dist/scal_dist;
-				//printf("iso_d: %f, scal_d: %f\n", iso_dist, scal_dist);
-				//printf("ll_scalar: %f\n", ll_scalar);
-				//printf("iso_val: %f\n", iso_val);
-				//printf("ll_s - iso_cal = %f\n", ll_scalar - iso_val);
+				pt1[1] = ll_actual[1] + (abs(ll_actual[1] - ul_actual[1])) * (iso_dist/scal_dist);
 			}
 			else printf("--- ERROR\n");
 
 
 			edge2 = lup[icase][2*i+1];
 			// Interpolate position along edge2
-			if ( edge2 == 0)
+			if (edge2 == 0)
 			{
+				printf("edge2: %d\n", edge2);
 				pt2[1] = (float) ll_logical[1];
 				iso_dist = fabs(ll_scalar - iso_val);
 				scal_dist = fabs(ll_scalar - lr_scalar);
-				pt2[0] = ll_logical[0] + iso_dist/scal_dist;
+				pt2[0] = ll_actual[0] + (abs(ll_actual[0] - lr_actual[0])) * (iso_dist/scal_dist); 
 			}			
-			else if ( edge2 == 1)
+			else if (edge2 == 1)
 			{
+				printf("edge2: %d\n", edge2);
 				pt2[0] = (float) lr_logical[0];
 				iso_dist = fabs(lr_scalar - iso_val);
 				scal_dist = fabs(lr_scalar - ur_scalar);
-				pt2[1] = lr_logical[1] + iso_dist/scal_dist;
+				pt2[1] = lr_actual[1] + (abs(lr_actual[1] - ur_actual[1])) * (iso_dist/scal_dist);
 			}
-			else if ( edge2 == 2)
+			else if (edge2 == 2)
 			{
+				printf("edge2: %d\n", edge2);
 				pt2[1] = (float) ul_logical[1];
 				iso_dist = fabs(ul_scalar - iso_val);
 				scal_dist = fabs(ul_scalar - ur_scalar);
-				pt2[0] = ul_logical[0] + iso_dist/scal_dist;
+				pt2[0] = ul_actual[0] + (abs(ul_actual[0] - ur_actual[0])) * (iso_dist/scal_dist);
 			}
-			else if ( edge2 == 3)
+			else if (edge2 == 3)
 			{
+				printf("edge2: %d\n", edge2);
 				pt2[0] = (float) ll_logical[0];
 				iso_dist = fabs(ll_scalar - iso_val);
 				scal_dist = fabs(ll_scalar - ul_scalar);
-				pt2[1] = ll_logical[1] + iso_dist/scal_dist;
+				pt2[1] = ll_actual[1] + (abs(ll_actual[1] - ul_actual[1])) * (iso_dist/scal_dist);
 			}
 			else printf("--- ERROR\n");
-
-			//normalize
-			pt1[0] = -10.0 + (pt1[0]/(X_WIDTH)) * 20.0;
-			pt1[1] = -10.0 + (pt1[1]/(Y_HEIGHT)) * 20.0;
-			pt2[0] = -10.0 + (pt2[0]/(X_WIDTH)) * 20.0;
-			pt2[1] = -10.0 + (pt2[1]/(Y_HEIGHT)) * 20.0;
-			printf("X_WIDTH: %f, Y_HEIGHT: %f\n", X_WIDTH, Y_HEIGHT);
-			// TODO I think the problem is in how pt is calculated initially.
-			// normalization probably is correct
 			
-
-			//AddLineSegmentToOutput(pt1, pt2);
-			printf("point: p1(%f, %f), p2(%f, %f)\n", pt1[0], pt1[1], pt2[0], pt2[1]);
+			printf("adding point: p1(%f, %f), p2(%f, %f)\n", pt1[0], pt1[1], pt2[0], pt2[1]);
 			sl.AddSegment(pt1[0], pt1[1], pt2[0], pt2[1]);
-		}
+			//sl.AddSegment(-i, -i, i, i);
 
-		
+		}
 	}
+	printf("--- DONE %d\n", 5);
+	//sl.AddSegment(-5, -5, 5, 5);
+
     vtkPolyData *pd = sl.MakePolyData();
 
     //This can be useful for debugging
@@ -491,8 +494,10 @@ int main()
 
     // This starts the event loop and invokes an initial render.
     //
+
     iren->Initialize();
     iren->Start();
-
+	printf("Prog End\n");
     pd->Delete();
+	
 }

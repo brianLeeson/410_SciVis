@@ -258,6 +258,11 @@ SegmentList::MakePolyData(void)
     return pd;
 }
 
+void interp(float *pt, const int *idx, const int edge, const float *X, const float *Y, const float *F)
+{
+
+}
+
 int main()
 {
     int  i, j;
@@ -368,42 +373,77 @@ int main()
 		int nsegments = numSegments[icase];
 		int edge1, edge2, i;
 		float pt1[2], pt2[2];
-		float iso_dist, scal_dist;
+		float idist, sdist;
+		float FA, FB, FX, A, B;
 		for (i = 0 ; i < nsegments ; i++)
 		{
 			edge1 = lup[icase][2*i];
 			// Interpolate position along edge1
+
+			
 			if (edge1 == 0)
 			{
 				printf("edge1: %d\n", edge1);
-				pt1[1] = (float) ll_logical[1];
-				iso_dist = fabs(ll_scalar - iso_val);
-				scal_dist = fabs(ll_scalar - lr_scalar);
-				pt1[0] = ll_actual[0] + (abs(ll_actual[0] - lr_actual[0])) * (iso_dist/scal_dist); 
+
+				FA = ll_scalar;
+				FB = lr_scalar;
+				A = ll_actual[0];
+				B = lr_actual[0];
+				FX = iso_val;
+				
+				pt1[1] = ll_actual[1];
+
+				idist = (FX - FA);
+				sdist = (FB - FA);
+				pt1[0] =  A + (idist/sdist) * (B-A);
 			}			
 			else if (edge1 == 1)
 			{
 				printf("edge1: %d\n", edge1);
-				pt1[0] = (float) lr_logical[0];
-				iso_dist = fabs(lr_scalar - iso_val);
-				scal_dist = fabs(lr_scalar - ur_scalar);
-				pt1[1] = lr_actual[1] + (abs(lr_actual[1] - ur_actual[1])) * (iso_dist/scal_dist);
+
+				FA = lr_scalar;
+				FB = ur_scalar;
+				A = lr_actual[1];
+				B = ur_actual[1];
+				FX = iso_val;
+				
+				pt1[0] = lr_actual[0];
+
+				idist = (FX - FA);
+				sdist = (FB - FA);
+				pt1[1] =  A + (idist/sdist) * (B-A);
 			}
 			else if (edge1 == 2)
 			{
 				printf("edge1: %d\n", edge1);
-				pt1[1] = (float) ul_logical[1];
-				iso_dist = fabs(ul_scalar - iso_val);
-				scal_dist = fabs(ul_scalar - ur_scalar);
-				pt1[0] = ul_actual[0] + (abs(ul_actual[0] - ur_actual[0])) * (iso_dist/scal_dist);
+
+				FA = ul_scalar;
+				FB = ur_scalar;
+				FX = iso_val;
+				A = ul_actual[0];
+				B = ur_actual[0];
+
+				pt1[1] = ul_actual[1];
+
+				idist = (FX - FA);
+				sdist = (FB - FA);
+				pt1[0] =  A + (idist/sdist) * (B-A);
 			}
 			else if (edge1 == 3)
 			{
 				printf("edge1: %d\n", edge1);
-				pt1[0] = (float) ll_logical[0];
-				iso_dist = fabs(ll_scalar - iso_val);
-				scal_dist = fabs(ll_scalar - ul_scalar);
-				pt1[1] = ll_actual[1] + (abs(ll_actual[1] - ul_actual[1])) * (iso_dist/scal_dist);
+
+				FA = ul_scalar;
+				FB = ll_scalar;
+				FX = iso_val;
+				A = ul_actual[1];
+				B = ll_actual[1];
+				
+				pt1[0] = ll_actual[0];
+
+				idist = (FX - FA);
+				sdist = (FB - FA);
+				pt1[1] =  FA + (idist/sdist) * (FB-FA);
 			}
 			else printf("--- ERROR\n");
 
@@ -413,37 +453,68 @@ int main()
 			if (edge2 == 0)
 			{
 				printf("edge2: %d\n", edge2);
-				pt2[1] = (float) ll_logical[1];
-				iso_dist = fabs(ll_scalar - iso_val);
-				scal_dist = fabs(ll_scalar - lr_scalar);
-				pt2[0] = ll_actual[0] + (abs(ll_actual[0] - lr_actual[0])) * (iso_dist/scal_dist); 
+
+				FA = ll_scalar;
+				FB = lr_scalar;
+				A = ll_actual[0];
+				B = lr_actual[0];
+				FX = iso_val;
+				
+				pt2[1] = ll_actual[1];
+
+				idist = (FX - FA);
+				sdist = (FB - FA);
+				pt2[0] =  A + (idist/sdist) * (B-A);
 			}			
 			else if (edge2 == 1)
 			{
 				printf("edge2: %d\n", edge2);
-				pt2[0] = (float) lr_logical[0];
-				iso_dist = fabs(lr_scalar - iso_val);
-				scal_dist = fabs(lr_scalar - ur_scalar);
-				pt2[1] = lr_actual[1] + (abs(lr_actual[1] - ur_actual[1])) * (iso_dist/scal_dist);
+
+				FA = lr_scalar;
+				FB = ur_scalar;
+				A = lr_actual[1];
+				B = ur_actual[1];
+				FX = iso_val;
+				
+				pt2[0] = lr_actual[0];
+
+				idist = (FX - FA);
+				sdist = (FB - FA);
+				pt2[1] =  A + (idist/sdist) * (B-A);
 			}
 			else if (edge2 == 2)
 			{
 				printf("edge2: %d\n", edge2);
-				pt2[1] = (float) ul_logical[1];
-				iso_dist = fabs(ul_scalar - iso_val);
-				scal_dist = fabs(ul_scalar - ur_scalar);
-				pt2[0] = ul_actual[0] + (abs(ul_actual[0] - ur_actual[0])) * (iso_dist/scal_dist);
+
+				FA = ul_scalar;
+				FB = ur_scalar;
+				FX = iso_val;
+				A = ul_actual[0];
+				B = ur_actual[0];
+
+				pt2[1] = ul_actual[1];
+
+				idist = (FX - FA);
+				sdist = (FB - FA);
+				pt2[0] =  A + (idist/sdist) * (B-A);
 			}
 			else if (edge2 == 3)
 			{
 				printf("edge2: %d\n", edge2);
-				pt2[0] = (float) ll_logical[0];
-				iso_dist = fabs(ll_scalar - iso_val);
-				scal_dist = fabs(ll_scalar - ul_scalar);
-				pt2[1] = ll_actual[1] + (abs(ll_actual[1] - ul_actual[1])) * (iso_dist/scal_dist);
+
+				FA = ul_scalar;
+				FB = ll_scalar;
+				FX = iso_val;
+				A = ul_actual[1];
+				B = ll_actual[1];
+				
+				pt2[0] = ll_actual[0];
+
+				idist = (FX - FA);
+				sdist = (FB - FA);
+				pt2[1] =  FA + (idist/sdist) * (FB-FA);
 			}
 			else printf("--- ERROR\n");
-			
 			printf("adding point: p1(%f, %f), p2(%f, %f)\n", pt1[0], pt1[1], pt2[0], pt2[1]);
 			sl.AddSegment(pt1[0], pt1[1], pt2[0], pt2[1]);
 			//sl.AddSegment(-i, -i, i, i);

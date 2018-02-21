@@ -556,7 +556,6 @@ int main()
 
     iren->Initialize();
     iren->Start();
-	printf("Prog End\n");
     pd->Delete();
 	
 }

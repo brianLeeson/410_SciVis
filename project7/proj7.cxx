@@ -56,6 +56,10 @@
 #include "tricase.cxx"
 
 
+//GLOBALS
+const float ISO_VAL = 3.2;
+
+
 // ****************************************************************************
 //  Function: GetNumberOfPoints
 //
@@ -206,19 +210,36 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
 
 
 //given a logical index for a cell, create array of logical values.
-void buildLogicalPointArray(float* logicalPointArray, const int* idx, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
+void buildActualPointArray(float* logicalPointArray, const int* idx, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
 {
-//TODO
-	int transform[3*8] = {000} // order matters
+	printf("in build actual\n");
+	//TODO?
+
+}
+
+//given a logical index for a cell, create array of logical values.
+void buildLogicalPointArray(int* logicalPointArray, const int* idx)
+{
+	printf("in build logical\n");
+	int transform[3*8] = {0,0,0, 1,0,0, 0,0,1, 1,0,1, 0,1,0, 1,1,0, 0,1,1, 1,1,1}; // order matters
+	int i = 0;
+	for (i = 0; i<8; i++)
+	{
+		logicalPointArray[3*i+0] = idx[0] + transform[3*i+0];
+		logicalPointArray[3*i+1] = idx[1] + transform[3*i+1];
+		logicalPointArray[3*i+2] = idx[2] + transform[3*i+2];
+	}
 }
 
 
 //given a logical index for a cell, create array of scalar values. each element in the array is the scalar value of a vertex. array[0] is vertex 0 and so on.
-void buildScalarPointArray(float* scalarPointArray, const int* idx, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
+void buildScalarPointArray(float* scalarPointArray, const int* idx, const float* F, const int* dims)
 {
-
+	printf("in build scalar\n");
 	int logicalIndexArray[3*8]; //3 positions for each of the 8 points
 	// buildLogicalPointArray
+	buildLogicalPointArray(logicalIndexArray, idx);
+	printf("built logicalPointArray\n");
 
 	//building scalarArray
 	int i;
@@ -236,35 +257,41 @@ void buildScalarPointArray(float* scalarPointArray, const int* idx, const float*
 }
 
 // return the current case that you are in.
-int findCase(const int cellID, const float ISO_VAL, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
+int findCase(const int cellID, const float ISO_VAL, const float* F, const int* dims)
 {
-	int idx[3];
+	printf("in findCase\n");
 	// get cells logical cell index
+	int idx[3];
 	GetLogicalCellIndex(idx, cellID, dims);
 
+	// build array of scalar fields values for each point {sp0, sp1, ..., sp7}
 	float scalarPointArray[8];  // scalar values for each of the 8 vertecies
-	//build scalar array
-	buildScalarPointArray(scalarPointArray, idx, X, Y, Z, F, dims)
-	
+	buildScalarPointArray(scalarPointArray, idx, F, dims);
+	printf("built scalarPointArray\n");
 
-
-
-	// create array of scalar fields values for each point {sp0, sp1, ..., sp7}
-	// unsigned int builder = 0x01;
-	 unsigned int icase = 0x00;
+	//determine case
+	unsigned int builder = 0x01;
+	unsigned int icase = 0x00;
+	int i = 0;
 	// for value in scalar_fields_values
-		// if (value > ISO_VALUE) {icase |= builder;}
-		// builder = builder<<1;
-
+	for(i = 0; i<8; i++)
+	{
+		if(scalarPointArray[i] > ISO_VAL){icase |= builder;}
+		builder = builder<<1;
+	}
+	printf("found icase: %d\n", icase);
 	return icase;
 
 }
 
+void interp(float* point, const int edge)
+{
+	printf("in interp\n");
+
+}
 
 int main()
-{
-	const float ISO_VAL = 3.2;
-	
+{	
 	vtkDataSetReader *rdr = vtkDataSetReader::New();
     rdr->SetFileName("proj7.vtk");
     rdr->Update();
@@ -281,7 +308,7 @@ int main()
 	TriangleList tl;
 
 	// Start doing the project
-
+	printf("Starting\n");
 	// iterate through each each cell
 	int numCells = GetNumberOfCells(dims);
 	int cellNum = 0;
@@ -289,30 +316,33 @@ int main()
 	// for each cell
 	for(cellNum = 0; cellNum < numCells; cellNum++)
 	{
+		printf("for cell num: %d\n", cellNum);
 		// find out what case you are in
-		int icase = findCase(cellNum, ISO_VAL, X, Y, Z, F, dims);
+		int icase = findCase(cellNum, ISO_VAL, F, dims);
 		
 		// find out how many triangles you will need to draw - for each triangle to be drawn:
 		int i = 0;
+		printf("starting while\n");
 		while(triCase[icase][i] != -1)
 		{
-				int edge1 = triCase[icase][3*i];
-				int edge2 = triCase[icase][3*i+1];
-				int edge3 = triCase[icase][3*i+2];
+			printf("while icase: %d\n", icase);
+			int edge1 = triCase[icase][3*i];
+			int edge2 = triCase[icase][3*i+1];
+			int edge3 = triCase[icase][3*i+2];
 
-				float pt1[3], pt2[3], pt3[3];
+			float pt1[3], pt2[3], pt3[3];
 
-				// interpolate to find the 3 vertecies of the triangle
-				// interp(pt1, edge1, ...);
-				// interp(pt2, edge2, ...);
-				// interp(pt3, edge3, ...);
+			// interpolate to find the 3 vertecies of the triangle
+			// interp(pt1, edge1, ...);
+			// interp(pt2, edge2, ...);
+			// interp(pt3, edge3, ...);
 
-				// add each vertex to the triangle list (tl)
-				// tl.AddTriangle(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2], pt2[0], pt2[1], pt2[2]);
+			// add each vertex to the triangle list (tl)
+			// tl.AddTriangle(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2], pt2[0], pt2[1], pt2[2]);
 
 			i++;
 		}
-			
+	printf("\n");	
 	}
 	// Stop doing the project
 

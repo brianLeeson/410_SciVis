@@ -200,8 +200,34 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
     //idx[1] = cellId/(dims[0]-1);
 }
 
+// ****************************************************************************
+// helper functions
+// ****************************************************************************
+
+// return the current case that you are in.
+int findCase(const int cellID, const float ISO_VAL, const float* X, const float* Y, const float* Z, const int* dims)
+{
+	int idx[3];
+	// get cells logical cell index
+	GetLogicalCellIndex(idx, cellID, dims);
+	int scalarPointArray[3*8];  //3 locations for each of the 8 points
+
+	// create array of scalar fields values for each point {sp0, sp1, ..., sp7}
+	// unsigned int builder = 0x01;
+	 unsigned int icase = 0x00;
+	// for value in scalar_fields_values
+		// if (value > ISO_VALUE) {icase |= builder;}
+		// builder = builder<<1;
+
+	return icase;
+
+}
+
+
 int main()
 {
+	const float ISO_VAL = 3.2;
+	
 	vtkDataSetReader *rdr = vtkDataSetReader::New();
     rdr->SetFileName("proj7.vtk");
     rdr->Update();
@@ -217,9 +243,48 @@ int main()
 
 	TriangleList tl;
 
-	// Do the project
+	// Start doing the project
 
+	// iterate through each each cell
+	int numCells = GetNumberOfCells(dims);
+	int cellNum = 0;
 
+	// for each cell
+	for(cellNum = 0; cellNum < numCells; cellNum++)
+	{
+		// find out what case you are in
+		int icase = findCase(cellNum, ISO_VAL, X, Y, Z, dims);
+
+		// create array of scalar fields values for each point {sp0, sp1, ..., sp7}
+		// unsigned int builder = 0x01;
+		// unsigned int icase = 0x00;
+		// for value in scalar fields values
+			// if (value > ISO_VALUE) {icase |= builder;}
+			// builder = builder<<1;
+			
+		
+		// find out how many triangles you will need to draw
+		// for each triangle to be drawn
+
+		int i = 0;
+		while(triCase[icase][i] != -1){
+				int edge1 = triCase[icase][i];
+				int edge2 = triCase[icase][i+1];
+				int edge3 = triCase[icase][i+2];
+
+				float pt1[3], pt2[3], pt3[3];
+
+				// interpolate to find the 3 vertecies of the triangle
+				// interp(pt1, edge1, ...);
+				// interp(pt2, edge2, ...);
+				// interp(pt3, edge3, ...);
+
+				// add each vertex to the triangle list (tl)
+				// tl.AddTriangle(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2], pt2[0], pt2[1], pt2[2]);
+
+		}
+			
+	}
 	// Stop doing the project
 
 	vtkPolyData *pd = tl.MakePolyData();

@@ -204,13 +204,50 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
 // helper functions
 // ****************************************************************************
 
+
+//given a logical index for a cell, create array of logical values.
+void buildLogicalPointArray(float* logicalPointArray, const int* idx, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
+{
+//TODO
+	int transform[3*8] = {000} // order matters
+}
+
+
+//given a logical index for a cell, create array of scalar values. each element in the array is the scalar value of a vertex. array[0] is vertex 0 and so on.
+void buildScalarPointArray(float* scalarPointArray, const int* idx, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
+{
+
+	int logicalIndexArray[3*8]; //3 positions for each of the 8 points
+	// buildLogicalPointArray
+
+	//building scalarArray
+	int i;
+	int pointIndex = -1;
+	int logicalPoint[3];
+	for(i = 0; i < 8; i++)
+	{
+		logicalPoint[0] = logicalIndexArray[3*i+0];
+		logicalPoint[1] = logicalIndexArray[3*i+1];
+		logicalPoint[2] = logicalIndexArray[3*i+2];
+		pointIndex = GetPointIndex(logicalPoint, dims);
+		scalarPointArray[i] = F[pointIndex];
+	}
+	
+}
+
 // return the current case that you are in.
-int findCase(const int cellID, const float ISO_VAL, const float* X, const float* Y, const float* Z, const int* dims)
+int findCase(const int cellID, const float ISO_VAL, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
 {
 	int idx[3];
 	// get cells logical cell index
 	GetLogicalCellIndex(idx, cellID, dims);
-	int scalarPointArray[3*8];  //3 locations for each of the 8 points
+
+	float scalarPointArray[8];  // scalar values for each of the 8 vertecies
+	//build scalar array
+	buildScalarPointArray(scalarPointArray, idx, X, Y, Z, F, dims)
+	
+
+
 
 	// create array of scalar fields values for each point {sp0, sp1, ..., sp7}
 	// unsigned int builder = 0x01;
@@ -253,24 +290,15 @@ int main()
 	for(cellNum = 0; cellNum < numCells; cellNum++)
 	{
 		// find out what case you are in
-		int icase = findCase(cellNum, ISO_VAL, X, Y, Z, dims);
-
-		// create array of scalar fields values for each point {sp0, sp1, ..., sp7}
-		// unsigned int builder = 0x01;
-		// unsigned int icase = 0x00;
-		// for value in scalar fields values
-			// if (value > ISO_VALUE) {icase |= builder;}
-			// builder = builder<<1;
-			
+		int icase = findCase(cellNum, ISO_VAL, X, Y, Z, F, dims);
 		
-		// find out how many triangles you will need to draw
-		// for each triangle to be drawn
-
+		// find out how many triangles you will need to draw - for each triangle to be drawn:
 		int i = 0;
-		while(triCase[icase][i] != -1){
-				int edge1 = triCase[icase][i];
-				int edge2 = triCase[icase][i+1];
-				int edge3 = triCase[icase][i+2];
+		while(triCase[icase][i] != -1)
+		{
+				int edge1 = triCase[icase][3*i];
+				int edge2 = triCase[icase][3*i+1];
+				int edge3 = triCase[icase][3*i+2];
 
 				float pt1[3], pt2[3], pt3[3];
 
@@ -282,6 +310,7 @@ int main()
 				// add each vertex to the triangle list (tl)
 				// tl.AddTriangle(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2], pt2[0], pt2[1], pt2[2]);
 
+			i++;
 		}
 			
 	}

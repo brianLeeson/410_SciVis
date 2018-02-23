@@ -11,6 +11,8 @@
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notice for more information.
 
+Credit: I got the idea for a transform array in buildLogicalPointArray from Laura.
+
 =========================================================================*/
 //
 // This examples demonstrates the effect of specular lighting.
@@ -210,17 +212,8 @@ void GetLogicalCellIndex(int *idx, int cellId, const int *dims)
 
 
 //given a logical index for a cell, create array of logical values.
-void buildActualPointArray(float* logicalPointArray, const int* idx, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
-{
-	printf("in build actual\n");
-	//TODO?
-
-}
-
-//given a logical index for a cell, create array of logical values.
 void buildLogicalPointArray(int* logicalPointArray, const int* idx)
 {
-	printf("in build logical\n");
 	int transform[3*8] = {0,0,0, 1,0,0, 0,0,1, 1,0,1, 0,1,0, 1,1,0, 0,1,1, 1,1,1}; // order matters
 	int i = 0;
 	for (i = 0; i<8; i++)
@@ -235,11 +228,9 @@ void buildLogicalPointArray(int* logicalPointArray, const int* idx)
 //given a logical index for a cell, create array of scalar values. each element in the array is the scalar value of a vertex. array[0] is vertex 0 and so on.
 void buildScalarPointArray(float* scalarPointArray, const int* idx, const float* F, const int* dims)
 {
-	printf("in build scalar\n");
 	int logicalIndexArray[3*8]; //3 positions for each of the 8 points
 	// buildLogicalPointArray
 	buildLogicalPointArray(logicalIndexArray, idx);
-	printf("built logicalPointArray\n");
 
 	//building scalarArray
 	int i;
@@ -259,7 +250,6 @@ void buildScalarPointArray(float* scalarPointArray, const int* idx, const float*
 // return the current case that you are in.
 int findCase(const int cellID, const float ISO_VAL, const float* F, const int* dims)
 {
-	printf("in findCase\n");
 	// get cells logical cell index
 	int idx[3];
 	GetLogicalCellIndex(idx, cellID, dims);
@@ -267,7 +257,6 @@ int findCase(const int cellID, const float ISO_VAL, const float* F, const int* d
 	// build array of scalar fields values for each point {sp0, sp1, ..., sp7}
 	float scalarPointArray[8];  // scalar values for each of the 8 vertecies
 	buildScalarPointArray(scalarPointArray, idx, F, dims);
-	printf("built scalarPointArray\n");
 
 	//determine case
 	unsigned int builder = 0x01;
@@ -279,15 +268,63 @@ int findCase(const int cellID, const float ISO_VAL, const float* F, const int* d
 		if(scalarPointArray[i] > ISO_VAL){icase |= builder;}
 		builder = builder<<1;
 	}
-	printf("found icase: %d\n", icase);
+	//printf("found icase: %d\n", icase);
 	return icase;
 
 }
 
-void interp(float* point, const int edge)
+void interp(float* resultPoint, const int edge, const int* idx, const float* X, const float* Y, const float* Z, const float* F, const int* dims)
 {
-	printf("in interp\n");
+	// get vertecies that create edge
+	//eTV[2*edge+0] and eTV[2*edge+1] to get verts for that edge
+	int edgeToVertecies[12*2] = {0,1, 1,3, 2,3, 0,2, 4,5, 5,7, 6,7, 4,6, 0,4, 1,5, 2,6, 3,7};
+	int vertA = edgeToVertecies[2*edge+0];
+	int vertB = edgeToVertecies[2*edge+1];
 
+	// get logical xyz for vertA and vertB
+	int logicalPointArray[3*8]; //3 positions for each of the 8 points
+	buildLogicalPointArray(logicalPointArray, idx);
+	
+	int logicalPoint1[3], logicalPoint2[3];
+	logicalPoint1[0] = logicalPointArray[3*vertA + 0];
+	logicalPoint1[1] = logicalPointArray[3*vertA + 1];
+	logicalPoint1[2] = logicalPointArray[3*vertA + 2];
+
+	logicalPoint2[0] = logicalPointArray[3*vertB + 0];
+	logicalPoint2[1] = logicalPointArray[3*vertB + 1];
+	logicalPoint2[2] = logicalPointArray[3*vertB + 2];
+
+	// get actual xyz for those points
+	float actualPoint1[3], actualPoint2[3];
+
+	actualPoint1[0] = X[logicalPoint1[0]];
+	actualPoint1[1] = Y[logicalPoint1[1]];
+	actualPoint1[2] = Z[logicalPoint1[2]];
+
+	actualPoint2[0] = X[logicalPoint2[0]];
+	actualPoint2[1] = Y[logicalPoint2[1]];
+	actualPoint2[2] = Z[logicalPoint2[2]];
+
+	// interpolate
+
+	// get scalar value for those two points
+	float FA = F[GetPointIndex(logicalPoint1, dims)];
+	float FB = F[GetPointIndex(logicalPoint2, dims)];
+
+	// figure out what your A and B is
+	float edgeToIndex[12] = {0, 2, 0, 2, 0, 2, 0, 2, 1, 1, 1, 1};
+	int componentIndex = edgeToIndex[edge];
+	float A = actualPoint1[componentIndex];
+	float B = actualPoint2[componentIndex];
+
+	// initialize result. only one direction changes, the others remain
+	resultPoint[0] = actualPoint1[0];
+	resultPoint[1] = actualPoint1[1];
+	resultPoint[2] = actualPoint1[2];
+
+	float t = (ISO_VAL - FA)/(FB - FA);
+
+	resultPoint[componentIndex] = A+t*(B-A);
 }
 
 int main()
@@ -308,7 +345,7 @@ int main()
 	TriangleList tl;
 
 	// Start doing the project
-	printf("Starting\n");
+
 	// iterate through each each cell
 	int numCells = GetNumberOfCells(dims);
 	int cellNum = 0;
@@ -316,34 +353,32 @@ int main()
 	// for each cell
 	for(cellNum = 0; cellNum < numCells; cellNum++)
 	{
-		printf("for cell num: %d\n", cellNum);
 		// find out what case you are in
 		int icase = findCase(cellNum, ISO_VAL, F, dims);
 		
 		// find out how many triangles you will need to draw - for each triangle to be drawn:
+		int idx[3];
+		GetLogicalCellIndex(idx, cellNum, dims);
 		int i = 0;
-		printf("starting while\n");
-		while(triCase[icase][i] != -1)
+		while(triCase[icase][3*i] != -1)
 		{
-			printf("while icase: %d\n", icase);
-			int edge1 = triCase[icase][3*i];
+			int edge1 = triCase[icase][3*i+0];
 			int edge2 = triCase[icase][3*i+1];
 			int edge3 = triCase[icase][3*i+2];
 
-			float pt1[3], pt2[3], pt3[3];
-
 			// interpolate to find the 3 vertecies of the triangle
-			// interp(pt1, edge1, ...);
-			// interp(pt2, edge2, ...);
-			// interp(pt3, edge3, ...);
+			float pt1[3], pt2[3], pt3[3];
+			interp(pt1, edge1, idx, X, Y, Z, F, dims);
+			interp(pt2, edge2, idx, X, Y, Z, F, dims);
+			interp(pt3, edge3, idx, X, Y, Z, F, dims);
 
 			// add each vertex to the triangle list (tl)
-			// tl.AddTriangle(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2], pt2[0], pt2[1], pt2[2]);
+			tl.AddTriangle(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2], pt3[0], pt3[1], pt3[2]);
 
 			i++;
 		}
-	printf("\n");	
 	}
+
 	// Stop doing the project
 
 	vtkPolyData *pd = tl.MakePolyData();

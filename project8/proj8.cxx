@@ -52,6 +52,7 @@ Credit: ---
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 
+#include <vtkDataSetWriter.h>
 
 
 
@@ -62,7 +63,7 @@ int main()
     rdr->SetFileName("proj8.vtk");
 
 	// Apply filters
-	wtkContourFulter *cf = vtkContourFilter::New();
+	vtkContourFilter *cf = vtkContourFilter::New();
 	cf->SetNumberOfContours(1);
 	cf->SetValue(0,3.0);
 	cf->SetInputConnection(rdr->GetOutputPort());
@@ -70,7 +71,11 @@ int main()
 	// Write to File
 	vtkDataSetWriter *wrtr = vtkDataSetWriter::New();
 	wrtr->SetFileName("contour.vtk");
-	wrtr->SetInputConnection(cf->GetoutputPort());
+	wrtr->SetInputConnection(cf->GetOutputPort());
 	wrtr->Write();
+
+	rdr->Delete();
+	cf->Delete();
+	wrtr->Delete();
 	
 }

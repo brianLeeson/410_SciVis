@@ -58,26 +58,49 @@ int main()
 {	
 	
 	//read data from file
-	vtkDataSetReader *rdr = vtkDataSetReader::New();
-    rdr->SetFileName("proj8.vtk");
+    vtkDataSetReader *reader = vtkDataSetReader::New();
+    reader->SetFileName("proj8.vtk");
+	
 
-	//TODO read data create some sort of filter/cutter/isosurface to pass to an actor thing
+	//countor filter for render #1
+	vtkContourFilter *cf = vtkContourFilter::New();
+	cf->SetNumberOfContours(1);
+	cf->SetValue(0, 2.5);
+	cf->SetValue(1, 5.0);
+	cf->SetInputConnection(reader->GetOutputPort());
 
-	//test -- https://www.vtk.org/Wiki/VTK/Examples/Cxx/Filtering/ContoursFromPolyData
-	vtkSmartPointer<vtkPolyData> inputPolyData;
+	// mapper #1
+	vtkSmartPointer<vtkPolyDataMapper> inputMapper1 =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	inputMapper1->SetInputConnection(cf->GetOutputPort());
+
+	// actor #1
+	vtkSmartPointer<vtkActor> actor1 = vtkSmartPointer<vtkActor>::New();
+	actor1->GetProperty()->SetColor(1.0, 0.8941, 0.7686); // bisque
+	actor1->SetMapper(inputMapper1);
+ 
+
+	// render #2
+
+	// render #3
+
+	// render #4
+
+	//this creates a dummy sphere. delete when using real data.
+	vtkSmartPointer<vtkPolyData> STUB_inputPolyData;
 	vtkSmartPointer<vtkSphereSource> sphereSource =
       vtkSmartPointer<vtkSphereSource>::New();
     sphereSource->SetThetaResolution(30);
     sphereSource->SetPhiResolution(15);
     sphereSource->Update();
-    inputPolyData = sphereSource->GetOutput();
+    STUB_inputPolyData = sphereSource->GetOutput();
 
 	vtkSmartPointer<vtkPolyDataMapper> inputMapper =
 		vtkSmartPointer<vtkPolyDataMapper>::New();
 
-	inputMapper->SetInputData(inputPolyData);
+	inputMapper->SetInputData(STUB_inputPolyData);
 
-	  // Create input actor
+	// Create input actor
 	vtkSmartPointer<vtkActor> testActor = 
 		vtkSmartPointer<vtkActor>::New();
 	testActor->GetProperty()->SetColor(1.0, 0.8941, 0.7686); // bisque
@@ -102,7 +125,7 @@ int main()
 	ren3->SetViewport(viewport3);
 	ren4->SetViewport(viewport4);
 
-	ren1->AddActor(testActor); //display the sphere
+	ren1->AddActor(actor1); //display the sphere
 	ren2->AddActor(testActor); //display the sphere
 	ren3->AddActor(testActor); //display the sphere
 	ren4->AddActor(testActor); //display the sphere

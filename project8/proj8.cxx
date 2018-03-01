@@ -52,7 +52,10 @@ Credit: ---
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 
-#include <vtkDataSetWriter.h>
+#include <vtkCutter.h>
+#include <vtkPlane.h>
+#include <vtkHedgeHog.h>
+#include <vtkMaskPoints.h>
 
 int main()
 {	
@@ -60,8 +63,12 @@ int main()
 	//read data from file
     vtkDataSetReader *reader = vtkDataSetReader::New();
     reader->SetFileName("proj8.vtk");
-	
+	reader->Update();
 
+	// get scalar range
+	double range[2];
+	reader->GetOutput()->GetPointData()->GetScalars()->GetRange(range);
+	
 	//countor filter for render #1
 	vtkContourFilter *cf = vtkContourFilter::New();
 	cf->SetNumberOfContours(1);
@@ -74,15 +81,106 @@ int main()
 		vtkSmartPointer<vtkPolyDataMapper>::New();
 	inputMapper1->SetInputConnection(cf->GetOutputPort());
 
-	// actor #1
+	// actor #1 - contourFilter
 	vtkSmartPointer<vtkActor> actor1 = vtkSmartPointer<vtkActor>::New();
-	actor1->GetProperty()->SetColor(1.0, 0.8941, 0.7686); // bisque
+	//actor1->GetProperty()->SetColor(1.0, 0.8941, 0.7686); // bisque
 	actor1->SetMapper(inputMapper1);
  
 
-	// render #2
+	// render #2 - cutter
+	vtkSmartPointer<vtkActor> actor2a = vtkSmartPointer<vtkActor>::New();
+	vtkSmartPointer<vtkActor> actor2b = vtkSmartPointer<vtkActor>::New();
+	vtkSmartPointer<vtkActor> actor2c = vtkSmartPointer<vtkActor>::New();
+	
+	// Create a plane #1 to cut,
+	vtkSmartPointer<vtkPlane> plane1 =
+		vtkSmartPointer<vtkPlane>::New();
+	plane1->SetOrigin(0,0,0);
+	plane1->SetNormal(1,0,0);
 
+	// Create cutter #1
+	vtkSmartPointer<vtkCutter> cutter1 =
+		vtkSmartPointer<vtkCutter>::New();
+	cutter1->SetCutFunction(plane1);
+	cutter1->SetInputConnection(reader->GetOutputPort());
+	cutter1->Update();
+
+	// Create a plane #2 to cut,
+	vtkSmartPointer<vtkPlane> plane2 =
+		vtkSmartPointer<vtkPlane>::New();
+	plane2->SetOrigin(0,0,0);
+	plane2->SetNormal(0,1,0);
+
+	// Create cutter #2
+	vtkSmartPointer<vtkCutter> cutter2 =
+		vtkSmartPointer<vtkCutter>::New();
+	cutter2->SetCutFunction(plane2);
+	cutter2->SetInputConnection(reader->GetOutputPort());
+	cutter2->Update();
+
+	// Create a plane #3 to cut 
+	vtkSmartPointer<vtkPlane> plane3 =
+		vtkSmartPointer<vtkPlane>::New();
+	plane3->SetOrigin(0,0,0);
+	plane3->SetNormal(0,0,1);
+
+	// Create cutter #3
+	vtkSmartPointer<vtkCutter> cutter3 =
+		vtkSmartPointer<vtkCutter>::New();
+	cutter3->SetCutFunction(plane3);
+	cutter3->SetInputConnection(reader->GetOutputPort());
+	cutter3->Update();
+
+	// add mapper to actor
+	vtkSmartPointer<vtkPolyDataMapper> cutterMapper1 =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	cutterMapper1->SetInputConnection(cutter1->GetOutputPort());
+	// set scalar range for mapper1
+	cutterMapper1->SetScalarRange(range);	
+
+	vtkSmartPointer<vtkPolyDataMapper> cutterMapper2 =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	cutterMapper2->SetInputConnection(cutter2->GetOutputPort());
+	// set scalar range for mapper2
+	cutterMapper2->SetScalarRange(range);	
+
+	vtkSmartPointer<vtkPolyDataMapper> cutterMapper3 =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	cutterMapper3->SetInputConnection(cutter3->GetOutputPort());
+	// set scalar range for mapper2
+	cutterMapper3->SetScalarRange(range);	
+
+	actor2a->SetMapper(cutterMapper1);
+	actor2b->SetMapper(cutterMapper2);
+	actor2c->SetMapper(cutterMapper3);
+	
 	// render #3
+
+	// access the grad portion of the data
+	reader->GetOutput()->GetPointData()->SetActiveAttribute("grad",
+		vtkDataSetAttributes::VECTORS);
+	reader->Update();
+
+	// add vtkMaskPoints filter. set sample rate
+	vtkSmartPointer<vtkMaskPoints> hedgeHogMask =
+		vtkSmartPointer<vtkMaskPoints>::New();
+	hedgeHogMask->SetOnRatio(11);
+	hedgeHogMask->SetInputConnection(reader->GetOutputPort());
+	hedgeHogMask->Update();
+
+	vtkSmartPointer<vtkHedgeHog> hedgehog = 
+		vtkSmartPointer<vtkHedgeHog>::New();
+	hedgehog->SetInputData(hedgeHogMask->GetOutput());
+	hedgehog->SetScaleFactor(2);
+	hedgehog->Update();
+
+	vtkSmartPointer<vtkPolyDataMapper> hedgeHogMapper =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	hedgeHogMapper->SetInputConnection(hedgehog->GetOutputPort());
+	hedgeHogMapper->SetScalarRange(range);
+
+	vtkSmartPointer<vtkActor> hedgeHogActor = vtkSmartPointer<vtkActor>::New();
+	hedgeHogActor->SetMapper(hedgeHogMapper);
 
 	// render #4
 
@@ -103,7 +201,7 @@ int main()
 	// Create input actor
 	vtkSmartPointer<vtkActor> testActor = 
 		vtkSmartPointer<vtkActor>::New();
-	testActor->GetProperty()->SetColor(1.0, 0.8941, 0.7686); // bisque
+	//testActor->GetProperty()->SetColor(1.0, 0.8941, 0.7686); // bisque
 	testActor->SetMapper(inputMapper);
  
 
@@ -126,8 +224,10 @@ int main()
 	ren4->SetViewport(viewport4);
 
 	ren1->AddActor(actor1); //display the sphere
-	ren2->AddActor(testActor); //display the sphere
-	ren3->AddActor(testActor); //display the sphere
+	ren2->AddActor(actor2a); //display the sphere
+	ren2->AddActor(actor2b); //display the sphere
+	ren2->AddActor(actor2c); //display the sphere
+	ren3->AddActor(hedgeHogActor); //display the sphere
 	ren4->AddActor(testActor); //display the sphere
  
 	//Add renderer to renderwindow and render
@@ -139,51 +239,13 @@ int main()
 	renderWindow->AddRenderer(ren4);
 	renderWindow->SetSize(800, 800);
 
-
 	vtkSmartPointer<vtkRenderWindowInteractor> interactor =
 		vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	interactor->SetRenderWindow(renderWindow);
 
-	
 	renderWindow->Render();
 
 	interactor->Start();
 	
 	return EXIT_SUCCESS;
-
-/*
-	// Apply filters
-	vtkContourFilter *cf = vtkContourFilter::New();
-	cf->SetNumberOfContours(1);
-	cf->SetValue(0,3.0);
-	cf->SetInputConnection(rdr->GetOutputPort());
-
-	
-	ren1->AddActor(testActor);
-
-
-	// make render window
-	vtkSmartPointer<vtkRenderWindow> renWin = 
-		vtkSmartPointer<vtkRenderWindow>::New();
-
-	// add renderers to render window
-	renWin->AddRenderer(ren1);
-	//renWin->AddRenderer(ren2);
-	//renWin->AddRenderer(ren3);
-	//renWin->AddRenderer(ren4);
-
-	renWin->SetSize(600, 600);
-
-	// make render window interactor - needed?
-	vtkSmartPointer<vtkRenderWindowInteractor> iren = 
-		vtkSmartPointer<vtkRenderWindowInteractor>::New();
-	iren->SetRenderWindow(renWin);
-
-
-	// this should show the picture
-	iren->Initialize();
-	iren->Start();
-
-	return 0;	
-	*/
 }

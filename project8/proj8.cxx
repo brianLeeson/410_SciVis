@@ -83,6 +83,7 @@ int main()
 	vtkSmartPointer<vtkPolyDataMapper> inputMapper1 =
 		vtkSmartPointer<vtkPolyDataMapper>::New();
 	inputMapper1->SetInputConnection(cf->GetOutputPort());
+	inputMapper1->SetScalarRange(range);
 
 	// actor #1 - contourFilter
 	vtkSmartPointer<vtkActor> actor1 = vtkSmartPointer<vtkActor>::New();
@@ -214,27 +215,6 @@ int main()
 	vtkActor *streamActor = vtkActor::New();
 	streamActor->SetMapper(streamTracerMapper);
 
-	//this creates a dummy sphere. delete when using real data.
-	vtkSmartPointer<vtkPolyData> STUB_inputPolyData;
-	vtkSmartPointer<vtkSphereSource> sphereSource =
-      vtkSmartPointer<vtkSphereSource>::New();
-    sphereSource->SetThetaResolution(30);
-    sphereSource->SetPhiResolution(15);
-    sphereSource->Update();
-    STUB_inputPolyData = sphereSource->GetOutput();
-
-	vtkSmartPointer<vtkPolyDataMapper> inputMapper =
-		vtkSmartPointer<vtkPolyDataMapper>::New();
-
-	inputMapper->SetInputData(STUB_inputPolyData);
-
-	// Create input actor
-	vtkSmartPointer<vtkActor> testActor = 
-		vtkSmartPointer<vtkActor>::New();
-	//testActor->GetProperty()->SetColor(1.0, 0.8941, 0.7686); // bisque
-	testActor->SetMapper(inputMapper);
- 
-
 	// Define viewport ranges
 	// (xmin, ymin, xmax, ymax)
 	double viewport1[4] = {0.0, 0.0, 0.5, 0.5};
@@ -253,12 +233,12 @@ int main()
 	ren3->SetViewport(viewport3);
 	ren4->SetViewport(viewport4);
 
-	ren1->AddActor(actor1); //display the sphere
-	ren2->AddActor(actor2a); //display the sphere
-	ren2->AddActor(actor2b); //display the sphere
-	ren2->AddActor(actor2c); //display the sphere
-	ren3->AddActor(hedgeHogActor); //display the sphere
-	ren4->AddActor(streamActor); //display the sphere
+	ren1->AddActor(actor1); 
+	ren2->AddActor(actor2a); 
+	ren2->AddActor(actor2b); 
+	ren2->AddActor(actor2c);
+	ren3->AddActor(hedgeHogActor); 
+	ren4->AddActor(streamActor);
  
 	//Add renderer to renderwindow and render
 	vtkSmartPointer<vtkRenderWindow> renderWindow =

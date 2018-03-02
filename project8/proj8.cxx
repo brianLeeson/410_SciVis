@@ -56,6 +56,9 @@ Credit: ---
 #include <vtkPlane.h>
 #include <vtkHedgeHog.h>
 #include <vtkMaskPoints.h>
+#include <vtkStreamTracer.h>
+#include "vtkRungeKutta4.h"
+#include "vtkLineSource.h"
 
 int main()
 {	
@@ -183,6 +186,33 @@ int main()
 	hedgeHogActor->SetMapper(hedgeHogMapper);
 
 	// render #4
+	vtkLineSource *rake = vtkLineSource::New();
+	rake->SetPoint1(-9, 0, 0);
+	rake->SetPoint2(9, 0, 0);
+	rake->SetResolution(19);
+	vtkPolyDataMapper *rakeMapper = vtkPolyDataMapper::New();
+	rakeMapper->SetInputConnection(rake->GetOutputPort());
+	vtkActor *rakeActor = vtkActor::New();
+	rakeActor->SetMapper(rakeMapper);
+
+	vtkRungeKutta4 *integ = vtkRungeKutta4::New();
+	vtkStreamTracer *streamTracer = vtkStreamTracer::New();
+	streamTracer->SetInputConnection(reader->GetOutputPort());
+	streamTracer->SetSourceConnection(rake->GetOutputPort());
+	streamTracer->SetIntegrator(integ);
+	streamTracer->SetMaximumPropagation(10);
+
+	streamTracer->SetInitialIntegrationStep(0.1);
+
+	streamTracer->SetIntegrationDirectionToForward();
+
+	vtkSmartPointer<vtkPolyDataMapper> streamTracerMapper =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	streamTracerMapper->SetInputConnection(streamTracer->GetOutputPort());
+	streamTracerMapper->SetScalarRange(range);
+	
+	vtkActor *streamActor = vtkActor::New();
+	streamActor->SetMapper(streamTracerMapper);
 
 	//this creates a dummy sphere. delete when using real data.
 	vtkSmartPointer<vtkPolyData> STUB_inputPolyData;
@@ -228,7 +258,7 @@ int main()
 	ren2->AddActor(actor2b); //display the sphere
 	ren2->AddActor(actor2c); //display the sphere
 	ren3->AddActor(hedgeHogActor); //display the sphere
-	ren4->AddActor(testActor); //display the sphere
+	ren4->AddActor(streamActor); //display the sphere
  
 	//Add renderer to renderwindow and render
 	vtkSmartPointer<vtkRenderWindow> renderWindow =

@@ -2,3 +2,4 @@ CMake*
 .cproject
 .project
 *.o
+*.gpx

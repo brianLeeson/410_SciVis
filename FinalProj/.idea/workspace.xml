@@ -12,21 +12,21 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="GPX_to_VTK.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GPX_to_VTK.py">
+      <file leaf-file-name="GPX_to_C.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/GPX_to_C.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="277">
-              <caret line="35" column="35" lean-forward="false" selection-start-line="35" selection-start-column="35" selection-end-line="35" selection-end-column="35" />
+            <state relative-caret-position="-1952">
+              <caret line="13" column="0" lean-forward="false" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="48" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="pointArray.c" pinned="false" current-in-tab="true">
+      <file leaf-file-name="pointArray.c" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pointArray.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="23">
-              <caret line="1" column="1" lean-forward="true" selection-start-line="1" selection-start-column="1" selection-end-line="1" selection-end-column="1" />
+            <state relative-caret-position="392">
+              <caret line="45802" column="34" lean-forward="false" selection-start-line="45802" selection-start-column="34" selection-end-line="45802" selection-end-column="34" />
               <folding />
             </state>
           </provider>
@@ -46,6 +46,8 @@
       <list>
         <option value="$PROJECT_DIR$/pointArray.c" />
         <option value="$PROJECT_DIR$/GPX_toVTK.py" />
+        <option value="$PROJECT_DIR$/GPX_to_VTK.py" />
+        <option value="$PROJECT_DIR$/sourceGPX/README.txt" />
       </list>
     </option>
   </component>
@@ -113,7 +115,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="FinalProj" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/GPX_to_VTK.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/GPX_to_C.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -255,18 +257,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GPX_to_VTK.py">
+    <entry file="file://$PROJECT_DIR$/pointArray.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="277">
-          <caret line="35" column="35" lean-forward="false" selection-start-line="35" selection-start-column="35" selection-end-line="35" selection-end-column="35" />
+        <state relative-caret-position="392">
+          <caret line="45802" column="34" lean-forward="false" selection-start-line="45802" selection-start-column="34" selection-end-line="45802" selection-end-column="34" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pointArray.c">
+    <entry file="file://$PROJECT_DIR$/sourceGPX/README.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="23">
-          <caret line="1" column="1" lean-forward="true" selection-start-line="1" selection-start-column="1" selection-end-line="1" selection-end-column="1" />
+        <state relative-caret-position="0">
+          <caret line="0" column="40" lean-forward="false" selection-start-line="0" selection-start-column="40" selection-end-line="0" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GPX_to_C.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1952">
+          <caret line="13" column="0" lean-forward="false" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="48" />
           <folding />
         </state>
       </provider>

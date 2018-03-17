@@ -3,3 +3,4 @@ CMake*
 .project
 *.o
 *.gpx
+.idea*

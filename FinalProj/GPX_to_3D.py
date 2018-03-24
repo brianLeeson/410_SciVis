@@ -56,7 +56,7 @@ def convert(srcPath, destPath, latRange, longRange, eleRange):
 
             # if in range, write to file
             if (inLatRange and inLonRange and inEleRange):
-                filePointer.write("{} {} {} {}\n".format(lat, long, ele, value))
+                filePointer.write("{} {} {} {}\n".format(lat, long, ele, ele))
 
     return None
 
@@ -112,3 +112,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
+import sys
+sys.path.append('/home/brian/Builds/Visit/visit2_13_0.linux-x86_64/2.13.0/linux-x86_64/lib/site-packages')
+import visit
+visit.Launch(vdir=“path/to/visit/bin”)
+"""
